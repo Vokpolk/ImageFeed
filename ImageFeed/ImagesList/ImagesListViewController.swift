@@ -7,22 +7,21 @@
 
 import UIKit
 
+private enum Constants {
+    static let activeImage = "Active"
+    static let noActiveImage = "No Active"
+}
+
 final class ImagesListViewController: UIViewController {
     @IBOutlet private var tableView: UITableView!
     
-    private let photosName: [String] = Array(0..<20).map{ "\($0)" }
+    private let photosName: [String] = (0..<20).map{ "\($0)" }
     
-    private lazy var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
-        return formatter
-    }()
+    private let currentDate: Date = Date()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tableView.rowHeight = 200
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
     }
     
@@ -30,7 +29,7 @@ final class ImagesListViewController: UIViewController {
 
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return photosName.count
+        photosName.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -55,11 +54,12 @@ extension ImagesListViewController {
         }
         
         cell.cellImagge.image = image
-        cell.dataLabel.text = dateFormatter.string(from: Date())
+        cell.dataLabel.text = DateFormatter.dateFormatter.string(from: currentDate)
         
         let isLiked = indexPath.row % 2 == 0
-        let likeImage = isLiked ? UIImage(named: "Active") : UIImage(named: "No Active")
+        let likeImage = isLiked ? UIImage(named: Constants.activeImage) : UIImage(named: Constants.noActiveImage)
         cell.likeButton.setImage(likeImage, for: .normal)
+        cell.backgroundGradientView.addGradient(colors: [.clear, .ypBlack, .ypBlack, .clear])
     }
 }
 
@@ -78,4 +78,13 @@ extension ImagesListViewController: UITableViewDelegate {
         let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
         return cellHeight
     }
+}
+
+extension DateFormatter {
+    static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        return formatter
+    }()
 }
