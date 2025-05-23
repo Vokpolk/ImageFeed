@@ -10,8 +10,6 @@ protocol AuthViewControllerDelegate: AnyObject {
     func didAuthenticate(_ vc: AuthViewController, didAuthenticateWithCode code: String)
 }
 final class AuthViewController: UIViewController {
-    //private let oauth2Service = OAuth2Service.shared
-    private let oauth2TokenStorage = OAuth2TokenStorage.shared
     private let showWebViewSegueIdentifier = "ShowWebView"
     
     weak var delegate: AuthViewControllerDelegate?
@@ -42,19 +40,7 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        //TODO: process code
         delegate?.didAuthenticate(self, didAuthenticateWithCode: code)
-        /*OAuth2Service.shared.fetchOAuthToken(code: code) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let authToken):
-                    print(authToken)
-                    self.oauth2TokenStorage.token = authToken
-                case .failure(let error):
-                    print("ERROR to get Token: \(error)")
-                }
-            }
-        }*/
         vc.dismiss(animated: true)
     }
     

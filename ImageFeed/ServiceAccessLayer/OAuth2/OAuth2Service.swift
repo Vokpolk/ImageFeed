@@ -25,9 +25,10 @@ final class OAuth2Service {
     private let oauth2TokenStorage = OAuth2TokenStorage.shared
     private init() {}
     
-    func makeOAuthTokenRequest(code: String) -> URLRequest {
+    func makeOAuthTokenRequest(code: String) -> URLRequest? {
         guard let baseURL = URL(string: "https://unsplash.com") else {
-            preconditionFailure("Unable to get base URL")
+            print("Unable to get base URL")
+            return nil
         }
         
         guard let url = URL(
@@ -39,7 +40,8 @@ final class OAuth2Service {
             + "&&grant_type=authorization_code",
             relativeTo: baseURL
         ) else {
-            preconditionFailure("Unable to get URL")
+            print("Unable to get URL")
+            return nil
         }
         
         var request = URLRequest(url: url)
@@ -49,7 +51,10 @@ final class OAuth2Service {
     }
     
     func fetchOAuthToken(code: String, handler: @escaping (Result<String, Error>) -> Void) {
-        let request = makeOAuthTokenRequest(code: code)
+        guard let request = makeOAuthTokenRequest(code: code) else {
+            print("Request error")
+            return
+        }
         
         let task = URLSession.shared.data(for: request, completion:  { result in
             DispatchQueue.main.async {
@@ -60,9 +65,11 @@ final class OAuth2Service {
                         self.oauth2TokenStorage.token = authToken.accessToken
                         handler(.success(authToken.accessToken))
                     } catch {
+                        print("Decoding error: \(error.localizedDescription)")
                         handler(.failure(error))
                     }
                 case .failure(let error):
+                    print("Network error: \(error.localizedDescription)")
                     handler(.failure(error))
                 }
             }

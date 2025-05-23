@@ -16,9 +16,11 @@ final class SplashViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        if let token = oauth2TokenStorage.token {
+        if let _ = oauth2TokenStorage.token {
+            print("Token is available, showing TabBarController")
             switchToTabBarController()
         } else {
+            print("Token is'nt available, showing AuthenticationScreen")
             performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
         }
     }
