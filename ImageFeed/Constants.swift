@@ -12,6 +12,7 @@ enum Constants {
     static let redirectURI = "urn:ietf:wg:oauth:2.0:oob"
     static let accessScope = "public+read_user+write_likes"
     static let defaulBaseURL = URL(string: "https://api.unsplash.com")!
+    static let baseURL = URL(string: "https://unsplash.com")
     
     static let activeImage = "Active"
     static let noActiveImage = "No Active"
