@@ -7,11 +7,6 @@
 
 import UIKit
 
-private enum Constants {
-    static let activeImage = "Active"
-    static let noActiveImage = "No Active"
-}
-
 final class ImagesListViewController: UIViewController {
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
     
