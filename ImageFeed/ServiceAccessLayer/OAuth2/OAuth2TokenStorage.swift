@@ -16,10 +16,6 @@ final class OAuth2TokenStorage {
             UserDefaults.standard.string(forKey: tokenKey)
         }
         set {
-            if UserDefaults.standard.string(forKey: tokenKey) != nil {
-                print(UserDefaults.standard.string(forKey: tokenKey)!)
-                return
-            }
             UserDefaults.standard.set(newValue, forKey: tokenKey)
         }
     }
