@@ -107,6 +107,6 @@ final class ProfileViewController: UIViewController {
     }
     
     @objc private func didLogoutButtonTap(_ sender: UIButton) {
-        print("Tapped")
+        print("APP: Tapped")
     }
 }

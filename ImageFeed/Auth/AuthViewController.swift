@@ -4,8 +4,9 @@
 //
 //  Created by Александр Клопков on 19.05.2025.
 //
-
 import UIKit
+//import ProgressHUD
+
 protocol AuthViewControllerDelegate: AnyObject {
     func didAuthenticate(_ vc: AuthViewController, didAuthenticateWithCode code: String)
 }
@@ -40,8 +41,12 @@ final class AuthViewController: UIViewController {
 
 extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        delegate?.didAuthenticate(self, didAuthenticateWithCode: code)
         vc.dismiss(animated: true)
+        
+        //ProgressHUD.animate()
+        UIBlockingProgressHUD.show()
+        print("APP: UI locked")
+        delegate?.didAuthenticate(self, didAuthenticateWithCode: code)
     }
     
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {

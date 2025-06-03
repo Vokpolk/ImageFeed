@@ -4,8 +4,8 @@
 //
 //  Created by Александр Клопков on 22.05.2025.
 //
-
 import UIKit
+//import ProgressHUD
 
 final class SplashViewController: UIViewController {
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
@@ -17,10 +17,10 @@ final class SplashViewController: UIViewController {
         super.viewDidAppear(animated)
         
         if let _ = oauth2TokenStorage.token {
-            print("Token is available, showing TabBarController")
+            print("APP: Token is available, showing TabBarController")
             switchToTabBarController()
         } else {
-            print("Token is'nt available, showing AuthenticationScreen")
+            print("APP: Token is'nt available, showing AuthenticationScreen")
             performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
         }
     }
@@ -61,12 +61,18 @@ extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController, didAuthenticateWithCode code: String) {
         dismiss(animated: true) { [weak self] in
             guard let self = self else { return }
-            self.fetchOAuthToken(code)
+            
+            fetchOAuthToken(code)
         }
     }
     private func fetchOAuthToken(_ code: String) {
         oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
             guard let self = self else { return }
+            
+            //ProgressHUD.dismiss()
+            UIBlockingProgressHUD.dismiss()
+            print("APP: UI unlocked")
+            
             switch result {
             case .success:
                 self.switchToTabBarController()
