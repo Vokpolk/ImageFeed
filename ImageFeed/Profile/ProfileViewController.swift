@@ -47,6 +47,9 @@ final class ProfileViewController: UIViewController {
         return logoutButton
     }()
     
+    private let oauth2TokenStorage = OAuth2TokenStorage.shared
+    private var profile = ProfileService.shared
+    
     // MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -63,9 +66,41 @@ final class ProfileViewController: UIViewController {
         initLoginNameLabelConstraint()
         initUserDescriptionLabelConstraint()
         initLogoutButtonConstraint()
+        
+        guard let profile = profile.profile else { return }
+        updateProfileDetails(profile: profile)
+        /*ProfileImageService.shared.fetchProfileImage(username: profile.username) { result in
+           switch result {
+           case .success(let smallImage):
+               print("APP: \(smallImage)")
+           case .failure:
+               print("APP: URLSession of Profile failed")
+               break
+           }
+       }*/
+        
+        /*if let token = oauth2TokenStorage.token {
+            ProfileService.shared.fetchProfile(token) { [weak self] result in
+                guard let self = self else { return }
+                
+                switch result {
+                case .success(let profile):
+                    setBaseProfileInformation(with: profile)
+                case .failure:
+                    print("APP: URLSession of Profile failed")
+                    break
+                }
+            }
+        }*/
     }
     
     // MARK: - Private Methods
+    private func updateProfileDetails(profile: Profile) {
+        nameLabel.text = profile.name
+        loginNameLabel.text = profile.loginName
+        userDescriptionLabel.text = profile.bio ?? ""
+    }
+    
     private func initAvatarImageViewConstraint() {
         NSLayoutConstraint.activate([
             avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),

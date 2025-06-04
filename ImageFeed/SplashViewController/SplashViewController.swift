@@ -10,15 +10,17 @@ import UIKit
 final class SplashViewController: UIViewController {
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
     
+    private let profileService = ProfileService.shared
     private let oauth2Service = OAuth2Service.shared
     private let oauth2TokenStorage = OAuth2TokenStorage.shared
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        if let _ = oauth2TokenStorage.token {
+        if let token = oauth2TokenStorage.token {
             print("APP: Token is available, showing TabBarController")
-            switchToTabBarController()
+            fetchProfile(token)
+            //switchToTabBarController()
         } else {
             print("APP: Token is'nt available, showing AuthenticationScreen")
             performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
@@ -63,21 +65,48 @@ extension SplashViewController: AuthViewControllerDelegate {
             guard let self = self else { return }
             
             fetchOAuthToken(code)
+            
+            guard let token = oauth2TokenStorage.token else { return }
+            fetchProfile(token)
         }
     }
     private func fetchOAuthToken(_ code: String) {
         oauth2Service.fetchOAuthToken(code: code) { [weak self] result in
             guard let self = self else { return }
             
-            //ProgressHUD.dismiss()
             UIBlockingProgressHUD.dismiss()
             print("APP: UI unlocked")
             
             switch result {
-            case .success:
-                self.switchToTabBarController()
+            case .success(let token):
+                self.fetchProfile(token)
             case .failure:
-                // TODO [Sprint 11]
+                // TODO: [Sprint 11]
+                break
+            }
+        }
+    }
+    
+    private func fetchProfile(_ token: String) {
+        UIBlockingProgressHUD.show()
+        profileService.fetchProfile(token) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            
+            switch result {
+            case .success(let profile):
+                ProfileImageService.shared.fetchProfileImage(username: profile.username) { result in
+                    switch result {
+                    case .success(let smallImage):
+                        print("APP: \(smallImage)")
+                    case .failure:
+                        print("APP: URLSession of Profile failed")
+                        break
+                    }
+                }
+                self?.switchToTabBarController()
+            case .failure:
+                print("APP: URLSession of Profile failed")
+                // TODO: [Sprint 11] Покажите ошибку получения профиля
                 break
             }
         }
