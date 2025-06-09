@@ -73,33 +73,27 @@ final class ProfileService {
             return
         }
         
-        let task = URLSession.shared.data(for: request, completion: { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let success):
-                    do {
-                        let profileRespone = try JSONDecoder().decode(ProfileResponseBody.self, from: success)
-                        let profile = Profile(
-                            username: profileRespone.username,
-                            name: "\(profileRespone.firstName)" +
-                                  " \(profileRespone.lastName ?? "")",
-                            loginName: "@\(profileRespone.username)",
-                            bio: profileRespone.bio
-                        )
-                        self?.profile = profile
-                        handler(.success(profile))
-                    } catch {
-                        print("APP: Decoding error: \(error.localizedDescription)")
-                        handler(.failure(error))
-                    }
-                case .failure(let error):
-                    print("APP: Network error: \(error)")
-                    handler(.failure(error))
-                }
-                self?.task = nil
-                self?.lastToken = nil
+        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<ProfileResponseBody, Error>) in
+            switch result {
+            case .success(let profileRespone):
+                print("APP: SUCCESS profile: \(profileRespone.username)")
+                let profile = Profile(
+                    username: profileRespone.username,
+                    name: "\(profileRespone.firstName)" +
+                          " \(profileRespone.lastName ?? "")",
+                    loginName: "@\(profileRespone.username)",
+                    bio: profileRespone.bio
+                )
+                self?.profile = profile
+                handler(.success(profile))
+            case .failure(let failure):
+                print("APP: FAILURE profile: \(failure.localizedDescription)")
+                handler(.failure(failure))
             }
-        })
+            self?.task = nil
+            self?.lastToken = nil
+        }
+        
         self.task = task
         task.resume()
     }

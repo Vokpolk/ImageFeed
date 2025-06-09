@@ -27,8 +27,13 @@ struct ImagesSize: Codable {
     }
 }
 
+enum ProfileImageServiceError: Error {
+    case invalidRequest
+}
+
 final class ProfileImageService {
     static let shared = ProfileImageService()
+    static let didChangeNotification = Notification.Name("ProfileImageProviderDidChange")
     
     private init() {}
     
@@ -44,20 +49,20 @@ final class ProfileImageService {
     private var task: URLSessionTask?
     private var lastUsername: String?
     
-    func fetchProfileImage(username: String, _ handler: @escaping (Result<String, Error>) -> Void) {
+    func fetchProfileImageURL(username: String, _ handler: @escaping (Result<String, Error>) -> Void) {
         assert(Thread.isMainThread)
         if task != nil {
             if lastUsername != token {
                 task?.cancel()
             } else {
-                print("APP: ProfileServiceError.invalidRequest")
-                handler(.failure(ProfileServiceError.invalidRequest))
+                print("APP: ProfileImageServiceError.invalidRequest")
+                handler(.failure(ProfileImageServiceError.invalidRequest))
                 return
             }
         } else {
             if lastUsername == token {
-                print("APP: ProfileServiceError.invalidRequest")
-                handler(.failure(ProfileServiceError.invalidRequest))
+                print("APP: ProfileImageServiceError.invalidRequest")
+                handler(.failure(ProfileImageServiceError.invalidRequest))
                 return
             }
         }
@@ -65,33 +70,41 @@ final class ProfileImageService {
         
         guard let request = makeProfileImageRequest(username: username) else {
             print("APP: Request error")
-            handler(.failure(ProfileServiceError.invalidRequest))
+            handler(.failure(ProfileImageServiceError.invalidRequest))
             return
         }
         
-        let task = URLSession.shared.data(for: request, completion: { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let success):
-                    do {
-                        let data = try JSONDecoder().decode(UserResult.self, from: success)
-                        self?.avatarURL = data.profileImage.small.absoluteString
-                        guard let avatar = self?.avatarURL else { return }
-                        handler(.success(avatar))
-                    } catch {
-                        print("APP: Decoding error: \(error.localizedDescription)")
-                        handler(.failure(error))
-                    }
-                case .failure(let error):
-                    print("APP: Network error: \(error)")
-                    handler(.failure(error))
-                }
-                self?.task = nil
-                self?.lastUsername = nil
+        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<UserResult, Error>) in
+            switch result {
+            case .success(let success):
+                print("APP: SUCCESS profileImage: \(success.profileImage.large.absoluteString)")
+                self?.avatarURL = success.profileImage.large.absoluteString
+                guard let avatar = self?.avatarURL else { return }
+                
+                NotificationCenter.default.post(
+                    name: ProfileImageService.didChangeNotification,
+                    object: self,
+                    userInfo: ["URL": avatar]
+                )
+                handler(.success(avatar))
+                //handler(.success(success.profileImage.small.absoluteString))
+            case .failure(let failure):
+                print("APP: FAILURE profileImage: \(failure.localizedDescription)")
+                handler(.failure(failure))
             }
-        })
+            self?.task = nil
+            self?.lastUsername = nil
+        }
+        
         self.task = task
         task.resume()
+        
+        guard let profileImageUrl = avatarURL else { return }
+        NotificationCenter.default.post(
+            name: ProfileImageService.didChangeNotification,
+            object: self,
+            userInfo: ["URL": profileImageUrl]
+        )
     }
     
     func makeProfileImageRequest(username: String) -> URLRequest? {

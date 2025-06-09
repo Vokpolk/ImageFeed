@@ -82,7 +82,14 @@ extension SplashViewController: AuthViewControllerDelegate {
                 self.fetchProfile(token)
             case .failure:
                 // TODO: [Sprint 11]
-                break
+                let alert = UIAlertController(title: "Что-то пошло не так",
+                                              message: "Не удалось войти в систему",
+                                              preferredStyle: .alert)
+                let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+                    alert.dismiss(animated: true)
+                }
+                alert.addAction(okAction)
+                present(alert, animated: true)
             }
         }
     }
@@ -91,19 +98,19 @@ extension SplashViewController: AuthViewControllerDelegate {
         UIBlockingProgressHUD.show()
         profileService.fetchProfile(token) { [weak self] result in
             UIBlockingProgressHUD.dismiss()
-            
+            guard let self = self else { return }
             switch result {
             case .success(let profile):
-                ProfileImageService.shared.fetchProfileImage(username: profile.username) { result in
+                ProfileImageService.shared.fetchProfileImageURL(username: profile.username) { result in
                     switch result {
                     case .success(let smallImage):
-                        print("APP: \(smallImage)")
+                        print("APP: smallImage: \(smallImage)")
                     case .failure:
                         print("APP: URLSession of Profile failed")
                         break
                     }
                 }
-                self?.switchToTabBarController()
+                self.switchToTabBarController()
             case .failure:
                 print("APP: URLSession of Profile failed")
                 // TODO: [Sprint 11] Покажите ошибку получения профиля

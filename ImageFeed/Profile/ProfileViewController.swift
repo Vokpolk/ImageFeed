@@ -6,13 +6,16 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
     // MARK: - Private Properties
     private var avatarImageView: UIImageView = {
-        let profileImage = UIImage(named: "Photo")
+        let profileImage = UIImage(named: "User")
         let avatarImageView = UIImageView(image: profileImage)
+        avatarImageView.layer.cornerRadius = 35
+        avatarImageView.layer.masksToBounds = true
         return avatarImageView
     }()
     private var nameLabel: UILabel = {
@@ -49,6 +52,7 @@ final class ProfileViewController: UIViewController {
     
     private let oauth2TokenStorage = OAuth2TokenStorage.shared
     private var profile = ProfileService.shared
+    private var profileImageServiceObserver: NSObjectProtocol?
     
     // MARK: - View Life Cycles
     override func viewDidLoad() {
@@ -69,32 +73,36 @@ final class ProfileViewController: UIViewController {
         
         guard let profile = profile.profile else { return }
         updateProfileDetails(profile: profile)
-        /*ProfileImageService.shared.fetchProfileImage(username: profile.username) { result in
-           switch result {
-           case .success(let smallImage):
-               print("APP: \(smallImage)")
-           case .failure:
-               print("APP: URLSession of Profile failed")
-               break
-           }
-       }*/
         
-        /*if let token = oauth2TokenStorage.token {
-            ProfileService.shared.fetchProfile(token) { [weak self] result in
-                guard let self = self else { return }
-                
-                switch result {
-                case .success(let profile):
-                    setBaseProfileInformation(with: profile)
-                case .failure:
-                    print("APP: URLSession of Profile failed")
-                    break
-                }
-            }
-        }*/
+        profileImageServiceObserver = NotificationCenter.default.addObserver(
+            forName: ProfileImageService.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            self.updateAvatar()
+        }
+        updateAvatar()
     }
     
     // MARK: - Private Methods
+    
+    private func updateAvatar() {
+        guard
+            let profileImageURL = ProfileImageService.shared.avatarURL,
+            let url = URL(string: profileImageURL)
+        else {
+            return
+        }
+        print("APP: [ProfileViewController] [updateAvatar] avatar updated")
+        let processor = RoundCornerImageProcessor(cornerRadius: 64)
+        avatarImageView.kf.setImage(with: url,
+                                    placeholder: UIImage(named: "User"),
+                                    options: [
+                                        .processor(processor)
+                                    ])
+    }
+    
     private func updateProfileDetails(profile: Profile) {
         nameLabel.text = profile.name
         loginNameLabel.text = profile.loginName
