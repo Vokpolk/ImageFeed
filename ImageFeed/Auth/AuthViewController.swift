@@ -28,6 +28,8 @@ final class AuthViewController: UIViewController {
                 return
             }
             webViewViewController.delegate = self
+        } else {
+            super.prepare(for: segue, sender: sender)
         }
     }
     
