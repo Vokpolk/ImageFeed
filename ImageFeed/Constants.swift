@@ -13,6 +13,7 @@ enum Constants {
     static let accessScope = "public+read_user+write_likes"
     static let defaulBaseURL = URL(string: "https://api.unsplash.com")!
     static let baseURL = URL(string: "https://unsplash.com")
+    static let apiURL = URL(string: "https://api.unsplash.com")
     
     static let activeImage = "Active"
     static let noActiveImage = "No Active"

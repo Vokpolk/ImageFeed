@@ -6,13 +6,16 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class ProfileViewController: UIViewController {
     
     // MARK: - Private Properties
     private var avatarImageView: UIImageView = {
-        let profileImage = UIImage(named: "Photo")
+        let profileImage = UIImage(named: "User")
         let avatarImageView = UIImageView(image: profileImage)
+        avatarImageView.layer.cornerRadius = 35
+        avatarImageView.layer.masksToBounds = true
         return avatarImageView
     }()
     private var nameLabel: UILabel = {
@@ -47,9 +50,54 @@ final class ProfileViewController: UIViewController {
         return logoutButton
     }()
     
+    private let oauth2TokenStorage = OAuth2TokenStorage.shared
+    private var profile = ProfileService.shared
+    private var profileImageServiceObserver: NSObjectProtocol?
+    
     // MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
+        makeViewsInits()
+        
+        guard let profile = profile.profile else { return }
+        updateProfileDetails(profile: profile)
+        
+        profileImageServiceObserver = NotificationCenter.default.addObserver(
+            forName: ProfileImageService.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            self.updateAvatar()
+        }
+        updateAvatar()
+    }
+    
+    // MARK: - Private Methods
+    
+    private func updateAvatar() {
+        guard
+            let profileImageURL = ProfileImageService.shared.avatarURL,
+            let url = URL(string: profileImageURL)
+        else {
+            return
+        }
+        print("APP: [ProfileViewController] [updateAvatar] avatar updated")
+        let processor = RoundCornerImageProcessor(cornerRadius: 64)
+        avatarImageView.kf.setImage(
+            with: url,
+            placeholder: UIImage(named: "User"),
+            options: [ .processor(processor)]
+        )
+    }
+    
+    private func updateProfileDetails(profile: Profile) {
+        nameLabel.text = profile.name
+        loginNameLabel.text = profile.loginName
+        userDescriptionLabel.text = profile.bio ?? ""
+    }
+    
+    private func makeViewsInits() {
         view.backgroundColor = UIColor(named: "YP Black")
         
         [avatarImageView, nameLabel, loginNameLabel, userDescriptionLabel, logoutButton]
@@ -65,7 +113,6 @@ final class ProfileViewController: UIViewController {
         initLogoutButtonConstraint()
     }
     
-    // MARK: - Private Methods
     private func initAvatarImageViewConstraint() {
         NSLayoutConstraint.activate([
             avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
@@ -107,6 +154,6 @@ final class ProfileViewController: UIViewController {
     }
     
     @objc private func didLogoutButtonTap(_ sender: UIButton) {
-        print("Tapped")
+        print("APP: Tapped")
     }
 }
