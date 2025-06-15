@@ -5,7 +5,6 @@
 //  Created by Александр Клопков on 22.05.2025.
 //
 import UIKit
-//import ProgressHUD
 
 final class SplashViewController: UIViewController {
     // MARK: - Private Properties

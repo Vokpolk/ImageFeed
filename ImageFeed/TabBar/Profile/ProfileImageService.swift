@@ -51,22 +51,8 @@ final class ProfileImageService {
     
     func fetchProfileImageURL(username: String, _ handler: @escaping (Result<String, Error>) -> Void) {
         assert(Thread.isMainThread)
-        if task != nil {
-            if lastUsername != token {
-                task?.cancel()
-            } else {
-                print("APP: ProfileImageServiceError.invalidRequest")
-                handler(.failure(ProfileImageServiceError.invalidRequest))
-                return
-            }
-        } else {
-            if lastUsername == token {
-                print("APP: ProfileImageServiceError.invalidRequest")
-                handler(.failure(ProfileImageServiceError.invalidRequest))
-                return
-            }
-        }
-        lastUsername = token
+        checkLastUsernameEnable(username, handler: handler)
+        lastUsername = username
         
         guard let request = makeProfileImageRequest(username: username) else {
             print("APP: Request error")
@@ -105,6 +91,27 @@ final class ProfileImageService {
             object: self,
             userInfo: ["URL": profileImageUrl]
         )
+    }
+    
+    func checkLastUsernameEnable(
+        _ username: String,
+        handler: @escaping (Result<String, Error>) -> Void
+    ) {
+        if task != nil {
+            if lastUsername != username {
+                task?.cancel()
+            } else {
+                print("APP: ProfileImageServiceError.invalidRequest")
+                handler(.failure(ProfileImageServiceError.invalidRequest))
+                return
+            }
+        } else {
+            if lastUsername == username {
+                print("APP: ProfileImageServiceError.invalidRequest")
+                handler(.failure(ProfileImageServiceError.invalidRequest))
+                return
+            }
+        }
     }
     
     func makeProfileImageRequest(username: String) -> URLRequest? {

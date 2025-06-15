@@ -57,19 +57,7 @@ final class ProfileViewController: UIViewController {
     // MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(named: "YP Black")
-        
-        [avatarImageView, nameLabel, loginNameLabel, userDescriptionLabel, logoutButton]
-            .forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview($0)
-        }
-        
-        initAvatarImageViewConstraint()
-        initNameLabelConstraint()
-        initLoginNameLabelConstraint()
-        initUserDescriptionLabelConstraint()
-        initLogoutButtonConstraint()
+        makeViewsInits()
         
         guard let profile = profile.profile else { return }
         updateProfileDetails(profile: profile)
@@ -96,17 +84,33 @@ final class ProfileViewController: UIViewController {
         }
         print("APP: [ProfileViewController] [updateAvatar] avatar updated")
         let processor = RoundCornerImageProcessor(cornerRadius: 64)
-        avatarImageView.kf.setImage(with: url,
-                                    placeholder: UIImage(named: "User"),
-                                    options: [
-                                        .processor(processor)
-                                    ])
+        avatarImageView.kf.setImage(
+            with: url,
+            placeholder: UIImage(named: "User"),
+            options: [ .processor(processor)]
+        )
     }
     
     private func updateProfileDetails(profile: Profile) {
         nameLabel.text = profile.name
         loginNameLabel.text = profile.loginName
         userDescriptionLabel.text = profile.bio ?? ""
+    }
+    
+    private func makeViewsInits() {
+        view.backgroundColor = UIColor(named: "YP Black")
+        
+        [avatarImageView, nameLabel, loginNameLabel, userDescriptionLabel, logoutButton]
+            .forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
+        
+        initAvatarImageViewConstraint()
+        initNameLabelConstraint()
+        initLoginNameLabelConstraint()
+        initUserDescriptionLabelConstraint()
+        initLogoutButtonConstraint()
     }
     
     private func initAvatarImageViewConstraint() {

@@ -50,21 +50,7 @@ final class ProfileService {
     
     func fetchProfile(_ token: String, handler: @escaping (Result<Profile, Error>) -> Void) {
         assert(Thread.isMainThread)
-        if task != nil {
-            if lastToken != token {
-                task?.cancel()
-            } else {
-                print("APP: ProfileServiceError.invalidRequest")
-                handler(.failure(ProfileServiceError.invalidRequest))
-                return
-            }
-        } else {
-            if lastToken == token {
-                print("APP: ProfileServiceError.invalidRequest")
-                handler(.failure(ProfileServiceError.invalidRequest))
-                return
-            }
-        }
+        checkLastTokenEnable(token: token, handler: handler)
         lastToken = token
         
         guard let request = makeProfileRequest(token: token) else {
@@ -96,6 +82,27 @@ final class ProfileService {
         
         self.task = task
         task.resume()
+    }
+    
+    func checkLastTokenEnable(
+        token: String,
+        handler: @escaping (Result<Profile, Error>) -> Void
+    ) {
+        if task != nil {
+            if lastToken != token {
+                task?.cancel()
+            } else {
+                print("APP: ProfileServiceError.invalidRequest")
+                handler(.failure(ProfileServiceError.invalidRequest))
+                return
+            }
+        } else {
+            if lastToken == token {
+                print("APP: ProfileServiceError.invalidRequest")
+                handler(.failure(ProfileServiceError.invalidRequest))
+                return
+            }
+        }
     }
     
     func makeProfileRequest(token: String) -> URLRequest? {

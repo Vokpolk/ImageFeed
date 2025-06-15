@@ -36,21 +36,11 @@ final class OAuth2Service {
     private init() {}
     
     
-    func fetchOAuthToken(code: String, handler: @escaping (Result<String, Error>) -> Void) {
+    func fetchOAuthToken(
+        code: String,
+        handler: @escaping (Result<String, Error>) -> Void) {
         assert(Thread.isMainThread)
-        if task != nil {
-            if lastCode != code {
-                task?.cancel()
-            } else {
-                handler(.failure(AuthServiceError.invalidRequest))
-                return
-            }
-        } else {
-            if lastCode == code {
-                handler(.failure(AuthServiceError.invalidRequest))
-                return
-            }
-        }
+        checkLastCodeEnable(code: code, handler: handler)
         lastCode = code
         
         guard let request = makeOAuthTokenRequest(code: code) else {
@@ -75,6 +65,25 @@ final class OAuth2Service {
         
         self.task = task
         task.resume()
+    }
+    
+    func checkLastCodeEnable(
+        code: String,
+        handler: @escaping (Result<String, Error>) -> Void
+    ) {
+        if task != nil {
+            if lastCode != code {
+                task?.cancel()
+            } else {
+                handler(.failure(AuthServiceError.invalidRequest))
+                return
+            }
+        } else {
+            if lastCode == code {
+                handler(.failure(AuthServiceError.invalidRequest))
+                return
+            }
+        }
     }
     
     func makeOAuthTokenRequest(code: String) -> URLRequest? {
