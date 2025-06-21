@@ -16,10 +16,15 @@ final class ImagesListViewController: UIViewController {
     
     private let currentDate: Date = Date()
     
+    private var imagesList = ImagesListService.shared
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        
+        //TODO: Временное решение, потом вернуть в tableView
+        imagesList.fetchPhotosNextPage()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -57,6 +62,15 @@ extension ImagesListViewController: UITableViewDataSource {
         
         configCell(for: imageListCell, with: indexPath)
         return imageListCell
+    }
+    
+    func tableView(
+        _ tableView: UITableView,
+        willDisplay cell: UITableViewCell,
+        forRowAt indexPath: IndexPath
+    ) {
+        // здесь будет вызов функции fetchPhotosNextPage
+        //imagesList.fetchPhotosNextPage()
     }
 }
 
@@ -100,6 +114,7 @@ extension DateFormatter {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         formatter.timeStyle = .none
+        //formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
         return formatter
     }()
 }
