@@ -15,6 +15,12 @@ final class ImagesListCell: UITableViewCell {
     
     @IBOutlet weak var backgroundGradientView: UIView!
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        cellImagge.kf.cancelDownloadTask()
+    }
+    
+    //tableView.reloadRows(at: [indexPath], with: .automatic)
 }
 
 extension UIView {

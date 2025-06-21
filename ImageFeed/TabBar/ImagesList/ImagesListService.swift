@@ -74,6 +74,7 @@ final class ImagesListService {
         // Здесь получим страницу номер 1, если не загружали ничего,
         // и следующую страницу (на единицу больше),
         // если есть предыдущая загруженная страница
+        let tempPage = lastLoadedPage
         let nextPage = (lastLoadedPage ?? 0) + 1
         
         guard let request = makeImagesListRequest(with: nextPage) else {
@@ -103,12 +104,17 @@ final class ImagesListService {
         
         self.task = task
         task.resume()
-        
-        guard var lastLoadedPage else {
+//        
+//        guard var lastLoadedPage else {
+//            lastLoadedPage = 1
+//            return
+//        }
+//        lastLoadedPage += 1
+        if lastLoadedPage == nil {
             lastLoadedPage = 1
-            return
+        } else {
+            lastLoadedPage! += 1
         }
-        lastLoadedPage += 1
     }
     
     func makeImagesListRequest(with page: Int) -> URLRequest? {
@@ -136,8 +142,8 @@ final class ImagesListService {
         //let date = DateFormatter.dateFormatter.date(from: photoUnsplash.createdAt)
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-        formatter.dateStyle = .long
-        formatter.timeStyle = .none
+        //formatter.dateStyle = .long
+        //formatter.timeStyle = .none
         let date = formatter.date(from: photoUnsplash.createdAt)
         return Photo(
             id: photoUnsplash.id,
