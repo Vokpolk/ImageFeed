@@ -6,8 +6,13 @@
 //
 import UIKit
 
+protocol ImagesListCellDelegate: AnyObject {
+    func imagesListCellDidTapLike(_ cell: ImagesListCell)
+}
+
 final class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
+    weak var delegate: ImagesListCellDelegate?
     private var imagesListService = ImagesListService.shared
     var idPhoto: String?
     
@@ -22,41 +27,13 @@ final class ImagesListCell: UITableViewCell {
         cellImagge.kf.cancelDownloadTask()
     }
     
-    func setIdPhoto(_ id: String) {
-        idPhoto = id
+    func setIsLiked(_ isLiked: Bool) {
+        let likeImage = isLiked ? UIImage(named: Constants.activeImage) : UIImage(named: Constants.noActiveImage)
+        likeButton.setImage(likeImage, for: .normal)
     }
     
-    @IBAction func tapLikeButton(_ sender: Any) {
-        guard let idPhoto else {
-            return
-        }
-        if let index = imagesListService.photos.firstIndex(where: {$0.id == idPhoto}) {
-            if imagesListService.photos[index].isLiked {
-                imagesListService.changeLike(
-                    photoId: idPhoto,
-                    isLike: false, completion: {result in
-                        switch result {
-                        case .success(let success):
-                            print(success)
-                        case .failure(let failure):
-                            print(failure)
-                        }
-                    }
-                )
-            } else {
-                imagesListService.changeLike(
-                    photoId: idPhoto,
-                    isLike: true, completion: {result in
-                        switch result {
-                        case .success(let success):
-                            print(success)
-                        case .failure(let failure):
-                            print(failure)
-                        }
-                    }
-                )
-            }
-        }
+    @IBAction private func tapLikeButton(_ sender: Any) {
+        delegate?.imagesListCellDidTapLike(self)
     }
 }
 

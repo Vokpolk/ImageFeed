@@ -71,6 +71,7 @@ final class ImagesListService {
     private let urlSession = URLSession.shared
     
     private var task: URLSessionTask?
+    private var changeLikeTask: URLSessionTask?
     
     // MARK: - fetchImagesList
     func fetchPhotosNextPage() {
@@ -140,13 +141,6 @@ final class ImagesListService {
     }
     
     private func makePhotoFromRequest(_ photoUnsplash: PhotoResult) -> Photo {
-        //let date = DateFormatter.dateFormatter.date(from: photoUnsplash.createdAt)
-        //let formatter = DateFormatter()
-        //formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-        //formatter.dateStyle = .long
-        //formatter.timeStyle = .none
-        //let date = formatter.date(from: photoUnsplash.createdAt)
-        
         var date = Date()
         let isoFormatter = ISO8601DateFormatter()
         isoFormatter.formatOptions = [
@@ -178,7 +172,9 @@ final class ImagesListService {
     // MARK: - fetchLikeOrUnlikePhoto
     func changeLike(photoId: String, isLike: Bool, completion: @escaping (Result<Void, Error>) -> Void) {
         assert(Thread.isMainThread)
-        
+        if changeLikeTask != nil {
+            changeLikeTask?.cancel()
+        }
         guard let request = makeRequestLikeUnlikePhoto(id: photoId, isLike: isLike) else {
             print("APP: [ImageList] Request like/unlike error")
             return
@@ -191,11 +187,16 @@ final class ImagesListService {
                     return
                 }
                 print("APP: [ImageList] SUCCESS like/unlike: \(success.photoResult.id)")
-                self.updatePhotoLike(photoId, success.photoResult.isLiked)
+                let isLiked = success.photoResult.isLiked
+                self.updatePhotoLike(photoId, isLiked)
+                completion(.success(Void()))
             case .failure(let failure):
                 print("APP: [ImageList] FAILURE like/unlike: \(failure)")
+                completion(.failure(failure))
             }
+            self?.changeLikeTask = nil
         }
+        self.changeLikeTask = task
         task.resume()
     }
     

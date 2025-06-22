@@ -46,9 +46,7 @@ final class ImagesListViewController: UIViewController {
                 assertionFailure("Invalid segue destination")
                 return
             }
-            
-            let image = UIImage(named: photosName[indexPath.row])
-            viewController.image = image
+            viewController.fullImageUrl = photos[indexPath.row].largeImageURL
         } else {
             super.prepare(for: segue, sender: sender)
         }
@@ -90,8 +88,7 @@ extension ImagesListViewController {
         cell.dataLabel.text = DateFormatter.dateFormatter.string(
             from: imagesListService.photos[indexPath.row].createdAt ?? Date()
         )
-        cell.setIdPhoto(imagesListService.photos[indexPath.row].id)
-        let isLiked = imagesListService.photos[indexPath.row].isLiked//indexPath.row % 2 == 0
+        let isLiked = imagesListService.photos[indexPath.row].isLiked
         let likeImage = isLiked ? UIImage(named: Constants.activeImage) : UIImage(named: Constants.noActiveImage)
         cell.likeButton.setImage(likeImage, for: .normal)
         cell.backgroundGradientView.addGradient(colors: [.clear, .ypBlack, .ypBlack, .clear])
@@ -120,6 +117,7 @@ extension ImagesListViewController: UITableViewDataSource {
         }
         
         configCell(for: imageListCell, with: indexPath)
+        imageListCell.delegate = self
         return imageListCell
     }
     
@@ -141,6 +139,35 @@ extension ImagesListViewController: UITableViewDelegate {
         didSelectRowAt indexPath: IndexPath
     ) {
         performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
+    }
+}
+
+extension ImagesListViewController: ImagesListCellDelegate {
+    func imagesListCellDidTapLike(_ cell: ImagesListCell) {
+        guard let indexPath = tableView.indexPath(for: cell) else { return }
+        let photo = photos[indexPath.row]
+        
+        UIBlockingProgressHUD.show()
+        imagesListService.changeLike(photoId: photo.id, isLike: !photo.isLiked) { result in
+            switch result {
+            case .success:
+                self.photos = self.imagesListService.photos
+                cell.setIsLiked(self.photos[indexPath.row].isLiked)
+                UIBlockingProgressHUD.dismiss()
+            case .failure:
+                UIBlockingProgressHUD.dismiss()
+                let alert = UIAlertController(
+                    title: "Что-то пошло не так",
+                    message: "Не удалось войти в систему",
+                    preferredStyle: .alert
+                )
+                let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+                    alert.dismiss(animated: true)
+                }
+                alert.addAction(okAction)
+                self.present(alert, animated: true)
+            }
+        }
     }
 }
 
