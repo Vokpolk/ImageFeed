@@ -14,12 +14,18 @@ struct Photo {
     let welcomeDescription: String?
     let largeImageURL: String
     let thumbImageURL: String
-    let isLiked: Bool
+    var isLiked: Bool
 }
-
+struct PhotoLikeResult: Codable {
+    let photoResult: PhotoResult
+    
+    private enum CodingKeys: String, CodingKey {
+        case photoResult = "photo"
+    }
+}
 struct PhotoResult: Codable {
     let id: String
-    let createdAt: String
+    let createdAt: String?
     let width: Int
     let height: Int
     let isLiked: Bool
@@ -66,6 +72,7 @@ final class ImagesListService {
     
     private var task: URLSessionTask?
     
+    // MARK: - fetchImagesList
     func fetchPhotosNextPage() {
         assert(Thread.isMainThread)
         if task != nil {
@@ -74,7 +81,6 @@ final class ImagesListService {
         // Здесь получим страницу номер 1, если не загружали ничего,
         // и следующую страницу (на единицу больше),
         // если есть предыдущая загруженная страница
-        let tempPage = lastLoadedPage
         let nextPage = (lastLoadedPage ?? 0) + 1
         
         guard let request = makeImagesListRequest(with: nextPage) else {
@@ -104,12 +110,7 @@ final class ImagesListService {
         
         self.task = task
         task.resume()
-//        
-//        guard var lastLoadedPage else {
-//            lastLoadedPage = 1
-//            return
-//        }
-//        lastLoadedPage += 1
+        
         if lastLoadedPage == nil {
             lastLoadedPage = 1
         } else {
@@ -117,7 +118,7 @@ final class ImagesListService {
         }
     }
     
-    func makeImagesListRequest(with page: Int) -> URLRequest? {
+    private func makeImagesListRequest(with page: Int) -> URLRequest? {
         guard let apiURL = Constants.apiURL else {
             print("APP: [ImageList] Unable to get base URL")
             return nil
@@ -140,11 +141,29 @@ final class ImagesListService {
     
     private func makePhotoFromRequest(_ photoUnsplash: PhotoResult) -> Photo {
         //let date = DateFormatter.dateFormatter.date(from: photoUnsplash.createdAt)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        //let formatter = DateFormatter()
+        //formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
         //formatter.dateStyle = .long
         //formatter.timeStyle = .none
-        let date = formatter.date(from: photoUnsplash.createdAt)
+        //let date = formatter.date(from: photoUnsplash.createdAt)
+        
+        var date = Date()
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [
+            .withInternetDateTime,
+            .withDashSeparatorInDate,
+            .withColonSeparatorInTime
+        ]
+        if let photoDate = isoFormatter.date(from: photoUnsplash.createdAt!) {
+            let outputFormatter = DateFormatter()
+            outputFormatter.dateFormat = "d MMMM yyyy"
+            
+            let formattedDate = outputFormatter.string(from: photoDate)
+            print("Date: " + formattedDate)
+            date = photoDate
+        } else {
+            print("Date: Не удалось распознать дату")
+        }
         return Photo(
             id: photoUnsplash.id,
             size: CGSize(width: photoUnsplash.width, height: photoUnsplash.height),
@@ -154,5 +173,67 @@ final class ImagesListService {
             thumbImageURL: photoUnsplash.images.thumb.absoluteString,
             isLiked: photoUnsplash.isLiked
         )
+    }
+    
+    // MARK: - fetchLikeOrUnlikePhoto
+    func changeLike(photoId: String, isLike: Bool, completion: @escaping (Result<Void, Error>) -> Void) {
+        assert(Thread.isMainThread)
+        
+        guard let request = makeRequestLikeUnlikePhoto(id: photoId, isLike: isLike) else {
+            print("APP: [ImageList] Request like/unlike error")
+            return
+        }
+        
+        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<PhotoLikeResult, Error>) in
+            switch result {
+            case .success(let success):
+                guard let self else {
+                    return
+                }
+                print("APP: [ImageList] SUCCESS like/unlike: \(success.photoResult.id)")
+                self.updatePhotoLike(photoId, success.photoResult.isLiked)
+            case .failure(let failure):
+                print("APP: [ImageList] FAILURE like/unlike: \(failure)")
+            }
+        }
+        task.resume()
+    }
+    
+    private func makeRequestLikeUnlikePhoto(id photoId: String, isLike: Bool) -> URLRequest? {
+        guard let apiURL = Constants.apiURL else {
+            print("APP: [ImageList] Unable to get base URL")
+            return nil
+        }
+        
+        guard let url = URL(
+            string: "/photos"
+            + "/\(photoId)"
+            + "/like",
+            relativeTo: apiURL
+        ) else {
+            print("APP: [ImageList] Unable to get like/unlike URL")
+            return nil
+        }
+        
+        var request = URLRequest(url: url)
+        guard let token else {
+            print("APP: Unable to get Bearer Token")
+            return nil
+        }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if isLike {
+            request.httpMethod = "POST"
+        } else {
+            request.httpMethod = "DELETE"
+        }
+        
+        return request
+    }
+    
+    private func updatePhotoLike(_ id: String, _ isLiked: Bool) {
+        if let index = self.photos.firstIndex(where: { $0.id == id }) {
+            photos[index].isLiked = isLiked
+            print("APP: [ImageList] [updatePhotoLike] isLiked: \(photos[index].isLiked)")
+        }
     }
 }

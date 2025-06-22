@@ -8,6 +8,8 @@ import UIKit
 
 final class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
+    private var imagesListService = ImagesListService.shared
+    var idPhoto: String?
     
     @IBOutlet weak var cellImagge: UIImageView!
     @IBOutlet weak var dataLabel: UILabel!
@@ -20,7 +22,42 @@ final class ImagesListCell: UITableViewCell {
         cellImagge.kf.cancelDownloadTask()
     }
     
-    //tableView.reloadRows(at: [indexPath], with: .automatic)
+    func setIdPhoto(_ id: String) {
+        idPhoto = id
+    }
+    
+    @IBAction func tapLikeButton(_ sender: Any) {
+        guard let idPhoto else {
+            return
+        }
+        if let index = imagesListService.photos.firstIndex(where: {$0.id == idPhoto}) {
+            if imagesListService.photos[index].isLiked {
+                imagesListService.changeLike(
+                    photoId: idPhoto,
+                    isLike: false, completion: {result in
+                        switch result {
+                        case .success(let success):
+                            print(success)
+                        case .failure(let failure):
+                            print(failure)
+                        }
+                    }
+                )
+            } else {
+                imagesListService.changeLike(
+                    photoId: idPhoto,
+                    isLike: true, completion: {result in
+                        switch result {
+                        case .success(let success):
+                            print(success)
+                        case .failure(let failure):
+                            print(failure)
+                        }
+                    }
+                )
+            }
+        }
+    }
 }
 
 extension UIView {

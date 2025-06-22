@@ -78,24 +78,20 @@ final class ImagesListViewController: UIViewController {
 extension ImagesListViewController {
     func configCell(for cell: ImagesListCell, with indexPath: IndexPath) {
         let imagePlaceHolder = UIImage(named: "photo_cap")
-        
-//        guard let image = UIImage(named: photosName[indexPath.row]) else {
-//            return
-//        }
-        
-//        cell.cellImagge.image = image
+        cell.cellImagge.kf.indicatorType = .activity
         cell.cellImagge.kf.setImage(
             with: URL(string: imagesListService.photos[indexPath.row].thumbImageURL),
             placeholder: imagePlaceHolder,
-            options: [ /*.processor(processor)*/]
+            options: []
         ) { [weak self] _ in
             guard let self else { return }
             self.tableView.reloadRows(at: [indexPath], with: .automatic)
         }
-        cell.cellImagge.kf.indicatorType = .activity
-        cell.dataLabel.text = DateFormatter.dateFormatter.string(from: currentDate)
-        
-        let isLiked = indexPath.row % 2 == 0
+        cell.dataLabel.text = DateFormatter.dateFormatter.string(
+            from: imagesListService.photos[indexPath.row].createdAt ?? Date()
+        )
+        cell.setIdPhoto(imagesListService.photos[indexPath.row].id)
+        let isLiked = imagesListService.photos[indexPath.row].isLiked//indexPath.row % 2 == 0
         let likeImage = isLiked ? UIImage(named: Constants.activeImage) : UIImage(named: Constants.noActiveImage)
         cell.likeButton.setImage(likeImage, for: .normal)
         cell.backgroundGradientView.addGradient(colors: [.clear, .ypBlack, .ypBlack, .clear])
@@ -107,7 +103,6 @@ extension ImagesListViewController: UITableViewDataSource {
         _ tableView: UITableView,
         numberOfRowsInSection section: Int
     ) -> Int {
-        //photosName.count
         photos.count
     }
     
@@ -147,28 +142,13 @@ extension ImagesListViewController: UITableViewDelegate {
     ) {
         performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
     }
-    
-//    func tableView(
-//        _ tableView: UITableView,
-//        heightForRowAt indexPath: IndexPath
-//    ) -> CGFloat {
-//        guard let image = UIImage(named: photosName[indexPath.row]) else {
-//            return 0
-//        }
-//        
-//        let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
-//        let imageViewWidth = tableView.bounds.width - imageInsets.left - imageInsets.right
-//        let imageWidth = image.size.width
-//        let scale = imageViewWidth / imageWidth
-//        let cellHeight = image.size.height * scale + imageInsets.top + imageInsets.bottom
-//        return cellHeight
-//    }
 }
 
 extension DateFormatter {
     static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
+        formatter.dateFormat = "d MMMM yyyy"
         formatter.timeStyle = .none
         //formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
         return formatter
