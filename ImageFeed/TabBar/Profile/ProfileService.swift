@@ -41,7 +41,7 @@ final class ProfileService {
         case codeError
     }
     
-    private(set) var profile: Profile?
+    var profile: Profile?
     
     private let urlSession = URLSession.shared
     

@@ -41,7 +41,7 @@ final class ProfileImageService {
         case codeError
     }
     
-    private(set) var avatarURL: String?
+    var avatarURL: String?
     
     private let token = OAuth2TokenStorage.shared.token
     private let urlSession = URLSession.shared

@@ -10,15 +10,6 @@ import UIKit
 final class SingleImageViewController: UIViewController {
     
     // MARK: - Public Properties
-    var image: UIImage? {
-        didSet {
-            guard isViewLoaded, let image else { return }
-            
-            imageView.image = image
-            imageView.frame.size = image.size
-            rescaleAndCenterImageInScrollView(image: image)
-        }
-    }
     var fullImageUrl: String?
     
     // MARK: - IB Outlets
@@ -79,7 +70,6 @@ final class SingleImageViewController: UIViewController {
         let imageSize = image.size
         let hScale = visibleRectSize.width / imageSize.width
         let vScale = visibleRectSize.height / imageSize.height
-        let photoScale = min(hScale, vScale)
         let scale = min(maxZoomScale, max(minZoomScale, min(hScale, vScale)))
         scrollView.setZoomScale(scale, animated: false)
         scrollView.layoutIfNeeded()
@@ -118,6 +108,7 @@ final class SingleImageViewController: UIViewController {
             }
         }
         alert.addAction(noAction)
+        alert.addAction(tryAction)
         present(alert, animated: true)
     }
 }

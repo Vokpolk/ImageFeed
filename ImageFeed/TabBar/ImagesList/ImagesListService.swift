@@ -63,7 +63,7 @@ final class ImagesListService {
     
     private init() {}
     
-    private(set) var photos: [Photo] = []
+    var photos: [Photo] = []
     
     private var lastLoadedPage: Int?
     

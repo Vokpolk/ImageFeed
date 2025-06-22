@@ -52,6 +52,7 @@ final class ProfileViewController: UIViewController {
     
     private let oauth2TokenStorage = OAuth2TokenStorage.shared
     private var profile = ProfileService.shared
+    private let profileLogout = ProfileLogoutService.shared
     private var profileImageServiceObserver: NSObjectProtocol?
     
     // MARK: - View Life Cycles
@@ -155,5 +156,6 @@ final class ProfileViewController: UIViewController {
     
     @objc private func didLogoutButtonTap(_ sender: UIButton) {
         print("APP: Tapped")
+        profileLogout.logout()
     }
 }
