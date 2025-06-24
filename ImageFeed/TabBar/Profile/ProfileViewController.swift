@@ -155,7 +155,6 @@ final class ProfileViewController: UIViewController {
     }
     
     @objc private func didLogoutButtonTap(_ sender: UIButton) {
-        print("APP: Tapped")
         let alert = UIAlertController(
             title: "Пока, пока!",
             message: "Уверены, что хотите выйти?",

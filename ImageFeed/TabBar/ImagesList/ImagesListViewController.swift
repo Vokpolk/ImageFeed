@@ -10,9 +10,8 @@ import UIKit
 final class ImagesListViewController: UIViewController {
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
     
-    @IBOutlet private var tableView: UITableView!
+    @IBOutlet weak private var tableView: UITableView!
     
-    private let photosName: [String] = (0..<20).map{ "\($0)" }
     private var photos: [Photo] = []
     
     private let currentDate: Date = Date()
@@ -90,7 +89,7 @@ extension ImagesListViewController {
         cell.backgroundGradientView.addGradient(colors: [.clear, .ypBlack, .ypBlack, .clear])
     }
 }
-
+// MARK: - UITableViewDataSource
 extension ImagesListViewController: UITableViewDataSource {
     func tableView(
         _ tableView: UITableView,
@@ -128,6 +127,7 @@ extension ImagesListViewController: UITableViewDataSource {
     }
 }
 
+// MARK: - UITableViewDelegate
 extension ImagesListViewController: UITableViewDelegate {
     func tableView(
         _ tableView: UITableView,
@@ -136,14 +136,15 @@ extension ImagesListViewController: UITableViewDelegate {
         performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
     }
 }
-
+// MARK: - ImagesListCellDelegate
 extension ImagesListViewController: ImagesListCellDelegate {
     func imagesListCellDidTapLike(_ cell: ImagesListCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
         let photo = photos[indexPath.row]
         
         UIBlockingProgressHUD.show()
-        imagesListService.changeLike(photoId: photo.id, isLike: !photo.isLiked) { result in
+        imagesListService.changeLike(photoId: photo.id, isLike: !photo.isLiked) { [weak self] result in
+            guard let self else { return }
             switch result {
             case .success:
                 self.photos = self.imagesListService.photos

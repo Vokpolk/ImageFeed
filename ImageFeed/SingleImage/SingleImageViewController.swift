@@ -13,19 +13,17 @@ final class SingleImageViewController: UIViewController {
     var fullImageUrl: String?
     
     // MARK: - IB Outlets
-    @IBOutlet private var scrollView: UIScrollView!
-    @IBOutlet private var imageView: UIImageView!
+    @IBOutlet weak private var scrollView: UIScrollView!
+    @IBOutlet weak private var imageView: UIImageView!
     
     // MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        scrollView.minimumZoomScale = 0.1
-        scrollView.maximumZoomScale = 1.25
-        
-        guard let fullImageUrl else { return }
-        setImage(with: fullImageUrl)
+        configureScrollView()
+        loadFullImageIfNeeded()
     }
     
+    // MARK: - Public Methods
     func setImage(with fullImageURL: String) {
         UIBlockingProgressHUD.show()
         imageView.kf.setImage(
@@ -58,6 +56,16 @@ final class SingleImageViewController: UIViewController {
     }
     
     // MARK: - Private Methods
+    private func configureScrollView() {
+        scrollView.minimumZoomScale = 0.1
+        scrollView.maximumZoomScale = 1.25
+    }
+    
+    private func loadFullImageIfNeeded() {
+        guard let fullImageUrl else { return }
+        setImage(with: fullImageUrl)
+    }
+    
     private func rescaleAndCenterImageInScrollView(image: UIImage) {
         let minZoomScale = scrollView.minimumZoomScale
         let maxZoomScale = scrollView.maximumZoomScale
@@ -113,6 +121,7 @@ final class SingleImageViewController: UIViewController {
     }
 }
 
+// MARK: - UIScrollViewDelegate
 extension SingleImageViewController: UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         imageView
