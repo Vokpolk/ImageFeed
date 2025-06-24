@@ -73,7 +73,6 @@ final class ProfileImageService {
                     userInfo: ["URL": avatar]
                 )
                 handler(.success(avatar))
-                //handler(.success(success.profileImage.small.absoluteString))
             case .failure(let failure):
                 print("APP: FAILURE profileImage: \(failure.localizedDescription)")
                 handler(.failure(failure))

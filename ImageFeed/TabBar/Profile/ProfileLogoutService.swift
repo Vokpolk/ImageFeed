@@ -25,8 +25,6 @@ final class ProfileLogoutService {
         profileService.profile = nil
         profileImageService.avatarURL = nil
         imagesListService.photos.removeAll()
-        //alexanderklopkov@mail.ru
-        //xuJdo8-xacveg-woskun
         let loginVC = SplashViewController()
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {

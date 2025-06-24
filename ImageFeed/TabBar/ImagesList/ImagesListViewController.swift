@@ -25,7 +25,6 @@ final class ImagesListViewController: UIViewController {
         
         tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
         
-        //TODO: Временное решение, потом вернуть в tableView
         imagesListService.fetchPhotosNextPage()
         imagesListServiceObserver = NotificationCenter.default.addObserver(
             forName: ImagesListService.didChangeNotification,
@@ -60,9 +59,6 @@ final class ImagesListViewController: UIViewController {
         
         if oldCount != newCount {
             tableView.performBatchUpdates{
-//                let indexPath = (oldCount..<newCount).map { i in
-//                    IndexPath(row: i, section: 0)
-//                }
                 var indexPath: [IndexPath] = []
                 for i in oldCount..<newCount {
                     indexPath.append(IndexPath(row: i, section: 0))
@@ -126,7 +122,6 @@ extension ImagesListViewController: UITableViewDataSource {
         willDisplay cell: UITableViewCell,
         forRowAt indexPath: IndexPath
     ) {
-        //TODO: здесь будет вызов функции fetchPhotosNextPage
         if indexPath.row == tableView.numberOfRows(inSection: 0) - 1 {
             imagesListService.fetchPhotosNextPage()
         }
