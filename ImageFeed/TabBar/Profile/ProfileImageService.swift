@@ -41,7 +41,7 @@ final class ProfileImageService {
         case codeError
     }
     
-    private(set) var avatarURL: String?
+    var avatarURL: String?
     
     private let token = OAuth2TokenStorage.shared.token
     private let urlSession = URLSession.shared
@@ -73,7 +73,6 @@ final class ProfileImageService {
                     userInfo: ["URL": avatar]
                 )
                 handler(.success(avatar))
-                //handler(.success(success.profileImage.small.absoluteString))
             case .failure(let failure):
                 print("APP: FAILURE profileImage: \(failure.localizedDescription)")
                 handler(.failure(failure))

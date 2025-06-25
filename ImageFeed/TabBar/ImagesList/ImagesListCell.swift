@@ -6,8 +6,15 @@
 //
 import UIKit
 
+protocol ImagesListCellDelegate: AnyObject {
+    func imagesListCellDidTapLike(_ cell: ImagesListCell)
+}
+
 final class ImagesListCell: UITableViewCell {
     static let reuseIdentifier = "ImagesListCell"
+    weak var delegate: ImagesListCellDelegate?
+    private var imagesListService = ImagesListService.shared
+    var idPhoto: String?
     
     @IBOutlet weak var cellImagge: UIImageView!
     @IBOutlet weak var dataLabel: UILabel!
@@ -15,6 +22,19 @@ final class ImagesListCell: UITableViewCell {
     
     @IBOutlet weak var backgroundGradientView: UIView!
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        cellImagge.kf.cancelDownloadTask()
+    }
+    
+    func setIsLiked(_ isLiked: Bool) {
+        let likeImage = isLiked ? UIImage(named: Constants.activeImage) : UIImage(named: Constants.noActiveImage)
+        likeButton.setImage(likeImage, for: .normal)
+    }
+    
+    @IBAction private func tapLikeButton(_ sender: Any) {
+        delegate?.imagesListCellDidTapLike(self)
+    }
 }
 
 extension UIView {
