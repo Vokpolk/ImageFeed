@@ -34,6 +34,7 @@ final class SingleImageViewController: UIViewController {
             guard let self = self else { return }
             switch result {
             case .success(let imageResult):
+                self.imageView.frame.size = imageResult.image.size
                 self.rescaleAndCenterImageInScrollView(image: imageResult.image)
             case .failure:
                 self.showError()
@@ -57,7 +58,7 @@ final class SingleImageViewController: UIViewController {
     
     // MARK: - Private Methods
     private func configureScrollView() {
-        scrollView.minimumZoomScale = 0.1
+        scrollView.minimumZoomScale = 0.05
         scrollView.maximumZoomScale = 1.25
     }
     
@@ -75,11 +76,7 @@ final class SingleImageViewController: UIViewController {
         let hScale = visibleRectSize.width / imageSize.width
         let vScale = visibleRectSize.height / imageSize.height
         let scale = min(maxZoomScale, max(minZoomScale, min(hScale, vScale)))
-        // Этот метод из учебника, и если оставить scale ниже,
-        // то итоговое фото будет очень маленькое.
-        // Мне кажется, что scale = 1, идеально подходит для полноразмерного просмотра
-        //scrollView.setZoomScale(scale, animated: false)
-        scrollView.setZoomScale(1, animated: false)
+        scrollView.setZoomScale(scale, animated: false)
         scrollView.layoutIfNeeded()
         let newContentSize = scrollView.contentSize
         let x = (newContentSize.width - visibleRectSize.width) / 2

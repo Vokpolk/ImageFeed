@@ -63,14 +63,14 @@ final class ProfileImageService {
         let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<UserResult, Error>) in
             switch result {
             case .success(let success):
+                guard let self else { return }
                 print("APP: SUCCESS profileImage: \(success.profileImage.large.absoluteString)")
-                self?.avatarURL = success.profileImage.large.absoluteString
-                guard let avatar = self?.avatarURL else { return }
+                self.avatarURL = success.profileImage.large.absoluteString
+                guard let avatar = self.avatarURL else { return }
                 
                 NotificationCenter.default.post(
                     name: ProfileImageService.didChangeNotification,
-                    object: self,
-                    userInfo: ["URL": avatar]
+                    object: self
                 )
                 handler(.success(avatar))
             case .failure(let failure):
@@ -83,13 +83,6 @@ final class ProfileImageService {
         
         self.task = task
         task.resume()
-        
-        guard let profileImageUrl = avatarURL else { return }
-        NotificationCenter.default.post(
-            name: ProfileImageService.didChangeNotification,
-            object: self,
-            userInfo: ["URL": profileImageUrl]
-        )
     }
     
     func checkLastUsernameEnable(

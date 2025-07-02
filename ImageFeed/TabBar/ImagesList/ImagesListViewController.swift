@@ -135,6 +135,13 @@ extension ImagesListViewController: UITableViewDelegate {
     ) {
         performSegue(withIdentifier: showSingleImageSegueIdentifier, sender: indexPath)
     }
+    
+    func tableView(
+        _ tableView: UITableView,
+        heightForRowAt indexPath: IndexPath
+    ) -> CGFloat {
+        return photos[indexPath.row].size.height * view.frame.width / photos[indexPath.row].size.width
+    }
 }
 // MARK: - ImagesListCellDelegate
 extension ImagesListViewController: ImagesListCellDelegate {
