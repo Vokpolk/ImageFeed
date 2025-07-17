@@ -7,32 +7,32 @@
 
 import UIKit
 
-final class ImagesListViewController: UIViewController {
+public protocol ImagesListViewControllerProtocol: AnyObject {
+    func configure(_ presenter: ImagesListPresenterProtocol)
+    func updateTableViewAnimated()
+}
+
+final class ImagesListViewController: UIViewController & ImagesListViewControllerProtocol {
+    // MARK: - Private Properties
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
+    private var presenter: ImagesListPresenterProtocol!
     
+    // MARK: - Private IBOutlets
     @IBOutlet weak private var tableView: UITableView!
     
-    private var photos: [Photo] = []
-    
-    private let currentDate: Date = Date()
-    
-    private var imagesListService = ImagesListService.shared
-    private var imagesListServiceObserver: NSObjectProtocol?
-    
+    // MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        tableView.contentInset = UIEdgeInsets(
+            top: 12,
+            left: 0,
+            bottom: 12,
+            right: 0
+        )
         
-        imagesListService.fetchPhotosNextPage()
-        imagesListServiceObserver = NotificationCenter.default.addObserver(
-            forName: ImagesListService.didChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            guard let self else { return }
-            self.updateTableViewAnimated()
-        }
+        presenter.fetchPhotosNextPage()
+        presenter.viewDidLoad()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -44,17 +44,20 @@ final class ImagesListViewController: UIViewController {
                 assertionFailure("Invalid segue destination")
                 return
             }
-            viewController.fullImageUrl = photos[indexPath.row].largeImageURL
+            viewController.fullImageUrl = presenter.getPhotos()[indexPath.row].largeImageURL
         } else {
             super.prepare(for: segue, sender: sender)
         }
     }
     
-    private func updateTableViewAnimated() {
-        let oldCount = photos.count
-        let newCount = imagesListService.photos.count
-        
-        photos = imagesListService.photos
+    // MARK: - Public Methods
+    func configure(_ presenter: any ImagesListPresenterProtocol) {
+        self.presenter = presenter
+        presenter.view = self
+    }
+    
+    func updateTableViewAnimated() {
+        let (newCount, oldCount) = presenter.updateTableViewAnimated()
         
         if oldCount != newCount {
             tableView.performBatchUpdates{
@@ -73,7 +76,7 @@ extension ImagesListViewController {
         let imagePlaceHolder = UIImage(named: "photo_cap")
         cell.cellImagge.kf.indicatorType = .activity
         cell.cellImagge.kf.setImage(
-            with: URL(string: imagesListService.photos[indexPath.row].thumbImageURL),
+            with: URL(string: presenter.getImagesListService().photos[indexPath.row].thumbImageURL),
             placeholder: imagePlaceHolder,
             options: []
         ) { [weak self] _ in
@@ -81,9 +84,9 @@ extension ImagesListViewController {
             self.tableView.reloadRows(at: [indexPath], with: .automatic)
         }
         cell.dataLabel.text = DateFormatter.dateFormatter.string(
-            from: imagesListService.photos[indexPath.row].createdAt ?? Date()
+            from: presenter.getImagesListService().photos[indexPath.row].createdAt ?? Date()
         )
-        let isLiked = imagesListService.photos[indexPath.row].isLiked
+        let isLiked = presenter.getImagesListService().photos[indexPath.row].isLiked
         let likeImage = isLiked ? UIImage(named: Constants.activeImage) : UIImage(named: Constants.noActiveImage)
         cell.likeButton.setImage(likeImage, for: .normal)
         cell.backgroundGradientView.addGradient(colors: [.clear, .ypBlack, .ypBlack, .clear])
@@ -95,7 +98,7 @@ extension ImagesListViewController: UITableViewDataSource {
         _ tableView: UITableView,
         numberOfRowsInSection section: Int
     ) -> Int {
-        photos.count
+        presenter.getPhotos().count
     }
     
     func tableView(
@@ -122,7 +125,7 @@ extension ImagesListViewController: UITableViewDataSource {
         forRowAt indexPath: IndexPath
     ) {
         if indexPath.row == tableView.numberOfRows(inSection: 0) - 1 {
-            imagesListService.fetchPhotosNextPage()
+            presenter.fetchPhotosNextPage()
         }
     }
 }
@@ -140,22 +143,22 @@ extension ImagesListViewController: UITableViewDelegate {
         _ tableView: UITableView,
         heightForRowAt indexPath: IndexPath
     ) -> CGFloat {
-        return photos[indexPath.row].size.height * view.frame.width / photos[indexPath.row].size.width
+        presenter.getPhotos()[indexPath.row].size.height * view.frame.width / presenter.getPhotos()[indexPath.row].size.width
     }
 }
 // MARK: - ImagesListCellDelegate
 extension ImagesListViewController: ImagesListCellDelegate {
     func imagesListCellDidTapLike(_ cell: ImagesListCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
-        let photo = photos[indexPath.row]
+        let photo = presenter.getPhotos()[indexPath.row]
         
         UIBlockingProgressHUD.show()
-        imagesListService.changeLike(photoId: photo.id, isLike: !photo.isLiked) { [weak self] result in
+        presenter.getImagesListService().changeLike(photoId: photo.id, isLike: !photo.isLiked) { [weak self] result in
             guard let self else { return }
             switch result {
             case .success:
-                self.photos = self.imagesListService.photos
-                cell.setIsLiked(self.photos[indexPath.row].isLiked)
+                self.presenter.setPhotos(self.presenter.getImagesListService().photos)
+                cell.setIsLiked(self.presenter.getPhotos()[indexPath.row].isLiked)
                 UIBlockingProgressHUD.dismiss()
             case .failure:
                 UIBlockingProgressHUD.dismiss()
@@ -180,7 +183,6 @@ extension DateFormatter {
         formatter.dateStyle = .long
         formatter.dateFormat = "d MMMM yyyy"
         formatter.timeStyle = .none
-        //formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
         return formatter
     }()
 }
