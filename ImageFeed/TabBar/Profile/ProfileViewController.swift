@@ -73,6 +73,7 @@ final class ProfileViewController: UIViewController & ProfileViewControllerProto
     // MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
+        logoutButton.accessibilityIdentifier = "LogoutButton"
         //presenter = ProfilePresenter(view: self)
         presenter?.viewDidLoad()
     }
@@ -115,11 +116,13 @@ final class ProfileViewController: UIViewController & ProfileViewControllerProto
             message: "Уверены, что хотите выйти?",
             preferredStyle: .alert
         )
+        alert.view.accessibilityIdentifier = "Alert"
         let yesAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
             guard let self else { return }
             presenter?.profileLogout()
             alert.dismiss(animated: true)
         }
+        yesAction.accessibilityIdentifier = "YesButton"
         let noAction = UIAlertAction(title: "Нет", style: .default) { _ in
             alert.dismiss(animated: true)
         }
