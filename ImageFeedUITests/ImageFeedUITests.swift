@@ -32,13 +32,13 @@ final class ImageFeedUITests: XCTestCase {
         let loginTextField = webView.descendants(matching: .textField).element
         XCTAssertTrue(loginTextField.waitForExistence(timeout: 5))
         loginTextField.tap()
-        loginTextField.typeText("alexanderklopkov@mail.ru")
+        loginTextField.typeText("ваш email")
         webView.swipeUp()
         
         let passwordTextField = webView.descendants(matching: .secureTextField).element
         XCTAssertTrue(passwordTextField.waitForExistence(timeout: 5))
         passwordTextField.tap()
-        passwordTextField.typeText("xuJdo8-xacveg-woskun")
+        passwordTextField.typeText("ваш пароль")
         webView.swipeUp()
         
         // Нажать кнопку логина
@@ -100,8 +100,8 @@ final class ImageFeedUITests: XCTestCase {
         // Перейти на экран профиля
         app.tabBars.buttons.element(boundBy: 1).tap()
         // Проверить, что на нём отображаются ваши персональные данные
-        XCTAssertTrue(app.staticTexts["Alexander Klopkov"].exists)
-        XCTAssertTrue(app.staticTexts["@vokpolk"].exists)
+        XCTAssertTrue(app.staticTexts["ваше имя"].exists)
+        XCTAssertTrue(app.staticTexts["ваш логин"].exists)
         // Нажать кнопку логаута
         app.buttons["LogoutButton"].tap()
         // Проверить, что открылся экран авторизации
