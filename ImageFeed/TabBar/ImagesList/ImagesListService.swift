@@ -12,10 +12,10 @@ private enum HTTPMethod: String {
     case delete = "DELETE"
 }
 
-final class ImagesListService {
+public final class ImagesListService {
     
     // MARK: - Static Properties
-    static let shared = ImagesListService()
+    public static let shared = ImagesListService()
     static let didChangeNotification = Notification.Name("ImagesListServiceDidChange")
     
     // MARK: - Initializer

@@ -14,9 +14,11 @@ final class TabBarController: UITabBarController {
         
         let imagesListViewController = storyboard.instantiateViewController(
             withIdentifier: "ImagesListViewController"
-        )
+        ) as! ImagesListViewController
+        imagesListViewController.configure(ImagesListPresenter(view: imagesListViewController))
         
         let profileViewController = ProfileViewController()
+        profileViewController.configure(ProfilePresenter(view: profileViewController))
         profileViewController.tabBarItem = UITabBarItem(
             title: "",
             image: UIImage(named: "tab_profile_active"),

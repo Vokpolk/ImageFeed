@@ -8,7 +8,22 @@
 import UIKit
 import Kingfisher
 
-final class ProfileViewController: UIViewController {
+public protocol ProfileViewControllerProtocol: AnyObject {
+    //var presenter: ProfilePresenterProtocol? { get set }
+    func configure(_ presenter: ProfilePresenterProtocol)
+    func updateAvatar(url: URL)
+    func updateProfileDetails(profile: Profile)
+    func makeViewsInits()
+}
+
+final class ProfileViewController: UIViewController & ProfileViewControllerProtocol {
+    // MARK: - Public Properties
+    private var presenter: ProfilePresenterProtocol!
+         
+    func configure(_ presenter: ProfilePresenterProtocol) {
+        self.presenter = presenter
+        presenter.view = self
+    }
     
     // MARK: - Private Properties
     private var avatarImageView: UIImageView = {
@@ -58,32 +73,13 @@ final class ProfileViewController: UIViewController {
     // MARK: - View Life Cycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        makeViewsInits()
-        
-        guard let profile = profile.profile else { return }
-        updateProfileDetails(profile: profile)
-        
-        profileImageServiceObserver = NotificationCenter.default.addObserver(
-            forName: ProfileImageService.didChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            guard let self = self else { return }
-            self.updateAvatar()
-        }
-        updateAvatar()
+        logoutButton.accessibilityIdentifier = "LogoutButton"
+        //presenter = ProfilePresenter(view: self)
+        presenter?.viewDidLoad()
     }
     
-    // MARK: - Private Methods
-    
-    private func updateAvatar() {
-        guard
-            let profileImageURL = ProfileImageService.shared.avatarURL,
-            let url = URL(string: profileImageURL)
-        else {
-            return
-        }
-        print("APP: [ProfileViewController] [updateAvatar] avatar updated")
+    // MARK: - Public Methods
+    func updateAvatar(url: URL) {
         let processor = RoundCornerImageProcessor(cornerRadius: 64)
         avatarImageView.kf.setImage(
             with: url,
@@ -92,13 +88,13 @@ final class ProfileViewController: UIViewController {
         )
     }
     
-    private func updateProfileDetails(profile: Profile) {
+    func updateProfileDetails(profile: Profile) {
         nameLabel.text = profile.name
         loginNameLabel.text = profile.loginName
         userDescriptionLabel.text = profile.bio ?? ""
     }
     
-    private func makeViewsInits() {
+    func makeViewsInits() {
         view.backgroundColor = UIColor(named: "YP Black")
         
         [avatarImageView, nameLabel, loginNameLabel, userDescriptionLabel, logoutButton]
@@ -114,6 +110,28 @@ final class ProfileViewController: UIViewController {
         initLogoutButtonConstraint()
     }
     
+    @objc private func didLogoutButtonTap() {
+        let alert = UIAlertController(
+            title: "Пока, пока!",
+            message: "Уверены, что хотите выйти?",
+            preferredStyle: .alert
+        )
+        alert.view.accessibilityIdentifier = "Alert"
+        let yesAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
+            guard let self else { return }
+            presenter?.profileLogout()
+            alert.dismiss(animated: true)
+        }
+        yesAction.accessibilityIdentifier = "YesButton"
+        let noAction = UIAlertAction(title: "Нет", style: .default) { _ in
+            alert.dismiss(animated: true)
+        }
+        alert.addAction(yesAction)
+        alert.addAction(noAction)
+        present(alert, animated: true)
+    }
+    
+    // MARK: - Private Methods
     private func initAvatarImageViewConstraint() {
         NSLayoutConstraint.activate([
             avatarImageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
@@ -152,24 +170,5 @@ final class ProfileViewController: UIViewController {
             logoutButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             logoutButton.centerYAnchor.constraint(equalTo: avatarImageView.centerYAnchor)
         ])
-    }
-    
-    @objc private func didLogoutButtonTap(_ sender: UIButton) {
-        let alert = UIAlertController(
-            title: "Пока, пока!",
-            message: "Уверены, что хотите выйти?",
-            preferredStyle: .alert
-        )
-        let yesAction = UIAlertAction(title: "Да", style: .default) { [weak self] _ in
-            guard let self else { return }
-            self.profileLogout.logout()
-            alert.dismiss(animated: true)
-        }
-        let noAction = UIAlertAction(title: "Нет", style: .default) { _ in
-            alert.dismiss(animated: true)
-        }
-        alert.addAction(yesAction)
-        alert.addAction(noAction)
-        present(alert, animated: true)
     }
 }
