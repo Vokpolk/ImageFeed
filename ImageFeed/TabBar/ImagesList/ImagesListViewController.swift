@@ -116,7 +116,6 @@ extension ImagesListViewController: UITableViewDataSource {
         
         configCell(for: imageListCell, with: indexPath)
         imageListCell.delegate = self
-        imageListCell.accessibilityIdentifier = "Cell\(indexPath.row)"
         return imageListCell
     }
     
@@ -126,10 +125,8 @@ extension ImagesListViewController: UITableViewDataSource {
         forRowAt indexPath: IndexPath
     ) {
         let testMode = ProcessInfo().arguments.contains("testMode")
-        if (!testMode) {
-            if indexPath.row == tableView.numberOfRows(inSection: 0) - 1 {
-                presenter.fetchPhotosNextPage()
-            }
+        if (!testMode && indexPath.row == tableView.numberOfRows(inSection: 0) - 1) {
+            presenter.fetchPhotosNextPage()
         }
     }
 }

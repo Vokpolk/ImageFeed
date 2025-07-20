@@ -49,7 +49,6 @@ final class ImageFeedUITests: XCTestCase {
         // Подождать, пока открывается экран ленты
         let tablesQuery = app.tables
         let cell = tablesQuery.children(matching: .cell).element(boundBy: 0)
-        //let cell = tablesQuery.cells["Cell0"]
         XCTAssertTrue(cell.waitForExistence(timeout: 5))
     }
     
@@ -58,7 +57,6 @@ final class ImageFeedUITests: XCTestCase {
         sleep(2)
         let tablesQuery = app.tables
         let cell = tablesQuery.children(matching: .cell).element(boundBy: 0)
-        //let cell = tablesQuery.cells["Cell0"]
         
         // Сделать жест «смахивания» вверх по экрану для его скролла
         cell.swipeUp()
@@ -66,7 +64,6 @@ final class ImageFeedUITests: XCTestCase {
         
         // Поставить лайк в ячейке верхней картинки
         let cellToLike = tablesQuery.children(matching: .cell).element(boundBy: 1)
-        //let cellToLike = tablesQuery.cells["Cell1"]
         cellToLike.buttons["LikeButton"].tap()
         sleep(2)
         

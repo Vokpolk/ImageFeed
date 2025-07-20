@@ -110,7 +110,7 @@ final class ProfileViewController: UIViewController & ProfileViewControllerProto
         initLogoutButtonConstraint()
     }
     
-    @objc func didLogoutButtonTap() {
+    @objc private func didLogoutButtonTap() {
         let alert = UIAlertController(
             title: "Пока, пока!",
             message: "Уверены, что хотите выйти?",
